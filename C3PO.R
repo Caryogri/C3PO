@@ -8,6 +8,7 @@ library(splitstackshape)
 library(Rutilitybelt)
 library(r2d3)
 library(jsonlite)
+library(rsvg)
 library(aws.s3)
 
 pathing = yaml.load_file("data/onlinePathing.yaml")
@@ -124,11 +125,15 @@ ui <- fluidPage(
       
       tabsetPanel(type = "tabs",
                   tabPanel("Diagram",
-                           d3Output("diagram", width = "100%", height = "800px"),
+                           d3Output("diagram", width = "100%", height="50em"),
+                           downloadButton("downloadSVG", "Download plot as SVG"),
+                           downloadButton("downloadPNG", "Download plot as PNG"),
                            tableOutput("clickInfo"),
                            dataTableOutput("selectedSamples"),
-                           downloadButton("downloadSamplesList", "Download Sample List")),
-                  tabPanel("Preview Upload", dataTableOutput("upload"))
+                           downloadButton("downloadSamplesList", "Download Sample List")
+                  ),
+                  tabPanel("Preview Upload", dataTableOutput("upload")),
+                  tabPanel("Instructions", uiOutput("readme"))
       )
     )
     
@@ -351,8 +356,7 @@ server <- function(input, output, session) {
       n = length(names(pathing$paths))
       for (weightSource in names(pathing$paths)) {
         if (pValue == input$pValPreGen) {
-          
-         if (cancer %in% pathing$serverCancerTypes) {
+          if (cancer %in% pathing$serverCancerTypes) {
             fileName = str_c(pathing$serverPath, pathing$pPathServer, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
             fileName = str_replace(fileName, ".txt", ".tsv")
             incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
@@ -514,7 +518,9 @@ server <- function(input, output, session) {
   output$diagram <- renderD3({
     print("Displaying d3")
     disable("downloadSamplesList")
-    r2d3(getD3Input(), script = "data/d3Plot2.js", d3_version = 4)
+    disable("downloadSVG")
+    disable("downloadPNG")
+    r2d3(getD3Input(), script = "data/d3Plot.js", d3_version = 4)
   })
   
   output$clickInfo <- renderTable({
@@ -535,13 +541,59 @@ server <- function(input, output, session) {
   
   output$downloadSamplesList <- downloadHandler(
     filename = function() {
-      str_c(str_replace(input$file1$name, "\\..+$", ""), "_", input$cancerType, "_", input$pVal, ".txt")
+      if (rv$exampleDataLoaded == TRUE) {
+        return(str_c("c3poSample_CPTAC_", input$cancerType, "_", rv$pValue, ".txt"))
+      } else  {
+        return(str_c(str_replace(input$file1$name, "\\..+$", ""), "_", input$cancerType, "_", rv$pValue, ".txt"))
+      }
     },
     content = function(file) {
       fwrite(rv$selected, file = file, sep = "\t")
     })
   
+  output$downloadSVG <- downloadHandler(
+    filename = function() {
+      if (rv$exampleDataLoaded == TRUE) {
+        return(str_c("c3poSample_CPTAC_", input$cancerType, "_", rv$pValue, "_plot.svg"))
+      } else  {
+        return(str_c(str_replace(input$file1$name, "\\..+$", ""), "_", input$cancerType, "_", rv$pValue, "_plot.svg"))
+      }
+    },
+    content = function(file) {
+      write(input$d3SVG, file = file)
+    },
+    contentType = "image/svg+xml"
+  )
+  
+  output$downloadPNG <- downloadHandler(
+    filename = function() {
+      if (rv$exampleDataLoaded == TRUE) {
+        return(str_c("c3poSample_CPTAC_", input$cancerType, "_", rv$pValue, "_plot.png"))
+      } else  {
+        return(str_c(str_replace(input$file1$name, "\\..+$", ""), "_", input$cancerType, "_", rv$pValue, "_plot.png"))
+      }
+    },
+    content = function(file) {
+      rsvg_png(charToRaw(input$d3SVG), file = file)
+    },
+    contentType = "image/png"
+  )
+  
   disable("downloadSamplesList")
+  
+  disable("downloadSVG")
+  
+  disable("downloadPNG")
+  
+  observe({
+    req(input$d3SVG)
+    enable("downloadSVG")
+    enable("downloadPNG")
+  })
+  
+  output$readme <- renderUI({
+    includeMarkdown("README.md")
+  })
   
 }
 

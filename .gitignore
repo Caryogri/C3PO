@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+data/awsInfo.yaml
+data/d3Plot2.js
+appC3PO_Old.R
