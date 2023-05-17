@@ -11,16 +11,26 @@ library(jsonlite)
 library(rsvg)
 library(aws.s3)
 
-pathing = yaml.load_file("data/onlinePathing.yaml")
-awsInfo = yaml.load_file("data/awsInfo.yaml")
+pathing = yaml.load_file("data/pathing.yaml")
 
-if (bucket_exists(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)) {
-  bucketInfo = as.data.table(get_bucket_df(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey))
-  availableCancerTypes = union(pathing$bucketCancerTypes, bucketInfo[!str_detect(Key, "Pre-Filtered Matrices")][, Key := str_replace(Key, "\\..+", "")]$Key)
-  awsConnected = TRUE
+onLocalMachine = !file.exists("data/awsInfo.yaml")
+
+if (onLocalMachine) {
+  availableCancerTypes = pathing$allCancerTypes
+  localCancerTypes = availableCancerTypes
 } else {
-  availableCancerTypes = pathing$serverCancerTypes
-  awsConnected = FALSE
+  awsInfo = yaml.load_file("data/awsInfo.yaml")
+  
+  localCancerTypes = pathing$serverCancerTypes
+  
+  if (bucket_exists(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)) {
+    bucketInfo = as.data.table(get_bucket_df(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey))
+    availableCancerTypes = union(pathing$bucketCancerTypes, bucketInfo[!str_detect(Key, "Pre-Filtered Matrices")][, Key := str_replace(Key, "\\..+", "")]$Key)
+    awsConnected = TRUE
+  } else {
+    availableCancerTypes = pathing$serverCancerTypes
+    awsConnected = FALSE
+  }
 }
 
 nests = fread(file = "data/TheNEST.csv", header = FALSE, col.names=c("NEST", "Description", "Genes"))
@@ -115,7 +125,9 @@ ui <- fluidPage(
       # Horizontal line ----
       tags$hr(),
       
-      sliderInput("numHallmarks", "Number of Hallmarks", min = 2, max = 21, value = 3, step = 1, ticks = FALSE)
+      
+      # Input: Slider for selecting number of to display in analysis ---
+      sliderInput("numHallmarks", "Number of Hallmarks", min = 2, max = 13, value = 3, step = 1, ticks = FALSE)
       
       
     ),
@@ -145,7 +157,7 @@ server <- function(input, output, session) {
   rv = reactiveValues()
   rv$exampleDataLoaded = FALSE
   
-  if (awsConnected == FALSE) {
+  if ((awsConnected == FALSE) & (onLocalMachine == FALSE)) {
     print(awsConnected)
     showNotification("Connection to AWS not found. Using limited datasets. Please contact developers to notify them of issue.")
   }
@@ -286,8 +298,8 @@ server <- function(input, output, session) {
       n = length(names(pathing$paths))
       
       for (weightSource in names(pathing$paths)) {
-        if (cancer %in% pathing$serverCancerTypes) {
-          fileName = str_c(pathing$serverPath, cancer, pathing$paths[[weightSource]])
+        if (cancer %in% localCancerTypes) {
+          fileName = str_c(pathing$weightsPath, cancer, pathing$paths[[weightSource]])
           proteins = fread(file = fileName)
           incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource))
         } else {
@@ -356,14 +368,14 @@ server <- function(input, output, session) {
       n = length(names(pathing$paths))
       for (weightSource in names(pathing$paths)) {
         if (pValue == input$pValPreGen) {
-          if (cancer %in% pathing$serverCancerTypes) {
-            fileName = str_c(pathing$serverPath, pathing$pPathServer, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
+          if (cancer %in% localCancerTypes) {
+            fileName = str_c(pathing$weightsPath, pathing$pPath, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
             fileName = str_replace(fileName, ".txt", ".tsv")
             incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
             proteins = fread(file = fileName)
             incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
           } else {
-            fileName = str_c(pathing$pPathServer, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
+            fileName = str_c(pathing$pPath, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
             fileName = str_replace(fileName, ".txt", ".tsv")
             proteins = get_object(fileName, awsInfo$bucketName, as = "text", key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)
             incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))

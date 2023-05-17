@@ -1,12 +1,24 @@
 title: filepaths
-serverPath: data/Weights/
+allCancerTypes:
+  - "BRCA"
+  - "CCRCC"
+  - "COAD"
+  - "GBM"
+  - "HNSCC"
+  - "LSCC"
+  - "LUAD"
+  - "OV"
+  - "PANCAN"
+  - "PDAC"
+  - "UCEC"
+weightsPath: data/Weights/
 serverCancerTypes:
   - "PANCAN"
 paths:
   Amplification: ".cnv.p.effect.mannu.amplification.txt"
   Deletion: ".cnv.p.effect.mannu.deletion.txt"
   DNA: ".dna.p.effect.mannu.txt"
-pPathServer: Pre-Filtered Matrices/
+pPath: Pre-Filtered Matrices/
 pValues:
   - 0.01
   - 0.05
