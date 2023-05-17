@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 data/awsInfo.yaml
+data/Weights
+data/PNGs
