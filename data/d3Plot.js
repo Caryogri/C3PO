@@ -98,12 +98,16 @@ if (height > width) {
 lImages = svg.selectAll("legendImages")
     .data(hallmarkList)
     .enter()
-    .append("span")
+    .append("g")
     .html(function(d, i) {return hallmarkIcons[d.name];})
-       .attr("x", function(d, i) {return legendHorizontalStart + legendHorizontalTravel * i;})
-       .attr("y", function(d, i) {return legendVerticalStart + legendVerticalTravel * i;})
-       .attr("height", legendImageSize)
-       .attr("width", legendImageSize);
+    .attr("transform", function(d, i) {
+      var scaleX =  legendImageSize/ 100;
+      var scaleY =  legendImageSize / 100;
+    
+      var translateX = legendHorizontalStart + legendHorizontalTravel * i;
+      var translateY = legendVerticalStart + legendVerticalTravel * i;
+      return "matrix(" + scaleX + ", 0, 0, " + scaleY + ", " + translateX + ", " + translateY + ")";
+    });
 
 Math.max(...(hallmarkList.map(el => el.length)));
 
@@ -198,11 +202,6 @@ hallmarkSlices.append("g")
     var translateY = d3.pointRadial((2*i+1) * rads, innerRadius + radiusDifference / 2)[1] - 50 * scaleY;
     return "matrix(" + scaleX + ", 0, 0, " + scaleY + ", " + translateX + ", " + translateY + ")";
     })
-    //"matrix(" + (1/(radiusDifference)) + ", 0, 0, " + (1/(radiusDifference)) + ", 0, 0)")
-  //.attr("width", radiusDifference / 2)
-  //.attr("height", radiusDifference / 2)
-  //.attr("x", function(d, i) {return d3.pointRadial((2*i+1) * rads, innerRadius + radiusDifference / 2)[0] - radiusDifference * .25;})
-  //.attr("y", function(d, i) {return d3.pointRadial((2*i+1) * rads, innerRadius + radiusDifference / 2)[1] - radiusDifference * .25;})
   .on("mouseover", function(d) {		
     tooltip.style("opacity", 1)
       .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');;	
