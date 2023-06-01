@@ -45,8 +45,6 @@ hallmarks = hallmarks[Value %chin% c("Y")]
 hallmarks = hallmarks[, !c("Value")]
 hallmarks = hallmarks[order(Genes)]
 
-hallmarkImagePaths = fread(file = "data/hallmarkImagePathing.csv")
-
 proteinIndex = fread("data/masterProteinIndex.tsv")
 
 #sets max upload size to 50MB
@@ -510,18 +508,15 @@ server <- function(input, output, session) {
       d3Input2 = d3Input2[, size := 1]
       d3Input2 = d3Input2[, connections := 0]
       d3Input2 = d3Input2[, order := .I]
-      d3Input2 = merge(d3Input2, hallmarkImagePaths, all = TRUE)[order(order)]
       d3Input2 = d3Input2[, !c("order")]
       setnames(d3Input2, "Hallmark", "name")
       
       incProgress(0.2)
-      #rv$topHallmarkIndices = c(-1,-1)
+
       
       
     })
-    #print(d3Input2)
     combined = list(d3Input, d3Input2)
-    #print(dput(combined))
     rm(d3Input)
     rm(d3Input2)
     return(toJSON(combined))
