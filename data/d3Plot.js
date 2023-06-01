@@ -167,7 +167,6 @@ hallmarkSlices.append("path")
             tooltip.style("opacity", 0);	
   })
   .on("mousemove", function(d) {
-    console.log(d3.mouse(this));
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
         .style("left",(d3.mouse(this)[0] + centerX + 35) + "px")
         .style("top", (d3.mouse(this)[1] + centerY + 35) + "px");
@@ -188,7 +187,6 @@ hallmarkSlices.append("path")
               .style("top, 0px");	
   })
   .on("mousemove", function(d) {
-    console.log(d3.mouse(this));
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
         .style("left", (d3.mouse(this)[0] + centerX + 35) + "px")
         .style("top", (d3.mouse(this)[1] + centerY + 35) + "px");
@@ -212,7 +210,6 @@ hallmarkSlices.append("g")
             tooltip.style("opacity", 0);	
   })
   .on("mousemove", function(d) {
-    console.log(d3.mouse(this.parentNode));
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
         .style("left", (d3.mouse(this.parentNode)[0] + centerX + 35) + "px")
         .style("top", (d3.mouse(this.parentNode)[1] + centerY + 35) + "px");
