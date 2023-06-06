@@ -160,6 +160,8 @@ server <- function(input, output, session) {
     showNotification("Connection to AWS not found. Using limited datasets. Please contact developers to notify them of issue.")
   }
   
+  if (onLocalMachine) { disable("useExampleData") }
+  
   observe({
     
     req(input$file1)
