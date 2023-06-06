@@ -143,7 +143,7 @@ ui <- fluidPage(
                            downloadButton("downloadSamplesList", "Download Sample List")
                   ),
                   tabPanel("Preview Upload", dataTableOutput("upload")),
-                  tabPanel("Instructions", uiOutput("readme"))
+                  tabPanel("README", uiOutput("readme"))
       )
     )
     
