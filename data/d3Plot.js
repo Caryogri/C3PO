@@ -288,9 +288,17 @@ for (y = 0; y < mainData.length; y++) {
       d3.select(this).attr("stroke", "red");
       currentSelected = this;
       updateSVGString();
+      
+      Shiny.setInputValue("selectedPathData", pathHallmarks[this.id], {priority: "event"});
+    } else {
+      d3.select(currentSelected).attr("stroke", "black");
+      currentSelected = null;
+      updateSVGString();
+      
+      Shiny.setInputValue("selectedPathData", "N/A", {priority: "event"});
     }
     
-    Shiny.setInputValue("selectedPathData", pathHallmarks[this.id], {priority: "event"});
+    
   });
 }
 

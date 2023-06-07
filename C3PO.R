@@ -534,10 +534,16 @@ server <- function(input, output, session) {
   
   output$clickInfo <- renderTable({
     req(getD3Input(), input$selectedPathData)
-    
-    selectedHallmarks = as.data.table(input$selectedPathData)
-    setkeyv(rv$ranked, colnames(rv$ranked[, !c("data")]))
-    rv$selected = unique(rv$ranked[selectedHallmarks[,!c("Count")], nomatch = 0])[1][["data"]][[1]]
+  
+    if (!is.list(input$selectedPathData)) {
+      rv$selected = NULL
+      selectedHallmarks = NULL
+      disable("downloadSamplesList")
+    } else {
+      selectedHallmarks = as.data.table(input$selectedPathData)
+      setkeyv(rv$ranked, colnames(rv$ranked[, !c("data")]))
+      rv$selected = unique(rv$ranked[selectedHallmarks[,!c("Count")], nomatch = 0])[1][["data"]][[1]]
+    }
     
     return(selectedHallmarks)
   })
