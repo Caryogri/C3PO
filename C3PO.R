@@ -107,7 +107,7 @@ ui <- fluidPage(
       tags$hr(),
       
       # Input: Checkbox if using custom P-Values ----
-      checkboxInput("useCustomP", "Use custom P-Value (SLOWER)", FALSE),
+      checkboxInput("useCustomP", "Use custom p-value (SLOWER)", FALSE),
       
       # Input: Simple integer interval ----
       selectInput("pValPreGen", "P-Value:", pathing$pValues, selected = 0.05),
@@ -140,7 +140,7 @@ ui <- fluidPage(
                            downloadButton("downloadPNG", "Download plot as PNG"),
                            tableOutput("clickInfo"),
                            dataTableOutput("selectedSamples"),
-                           downloadButton("downloadSamplesList", "Download Sample List")
+                           downloadButton("downloadSamplesList", "Download sample list")
                   ),
                   tabPanel("Preview Upload", dataTableOutput("upload")),
                   tabPanel("README", uiOutput("readme"))
