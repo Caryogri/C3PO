@@ -98,13 +98,7 @@ if (height > width) {
       var scaleX =  legendImageSize/ 100;
       var scaleY =  legendImageSize / 100;
     
-      var translateX;
-      
-      if ((i % 2) === 0) {
-        translateX = legendHorizontalStart;
-      }  else {
-        translateX = legendHorizontalStart + legendHorizontalTravel;
-      }
+      var translateX = translateX = legendHorizontalStart + legendHorizontalTravel * (i % 2);
       var translateY = legendVerticalStart + legendVerticalTravel * (Math.floor(i/2));
       return "matrix(" + scaleX + ", 0, 0, " + scaleY + ", " + translateX + ", " + translateY + ")";
     });
@@ -114,14 +108,7 @@ if (height > width) {
     .enter()
     .append("text")
       .text(function(d){return d.name;})
-      .attr("x", function(d, i) {
-        if ((i % 2) === 0) {
-          return legendHorizontalStart + legendImageSize + 5;
-        }  else {
-          return legendHorizontalStart + legendImageSize + 5 + legendHorizontalTravel;
-        }
-        
-      })
+      .attr("x", function(d, i) {return legendHorizontalStart + legendImageSize + 5 + legendHorizontalTravel * (i % 2);})
       .attr("y", function(d, i) {return legendVerticalStart + legendImageSize * 1/2 + legendVerticalTravel * (Math.floor(i/2));})
       .attr("text-anchor", "left")
       .style("alignment-baseline", "middle")
