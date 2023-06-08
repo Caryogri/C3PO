@@ -606,7 +606,7 @@ server <- function(input, output, session) {
   })
   
   output$readme <- renderUI({
-    includeMarkdown("data/README.md")
+    includeMarkdown("README.md")
   })
   
 }
