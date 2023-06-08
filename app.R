@@ -19,6 +19,7 @@ onLocalMachine = !file.exists("data/awsInfo.yaml")
 if (onLocalMachine) {
   availableCancerTypes = pathing$allCancerTypes
   localCancerTypes = availableCancerTypes
+  totalSupportedCancerTypes = availableCancerTypes
 } else {
   awsInfo = yaml.load_file("data/awsInfo.yaml")
   
@@ -27,9 +28,11 @@ if (onLocalMachine) {
   if (bucket_exists(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)) {
     bucketInfo = as.data.table(get_bucket_df(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey))
     availableCancerTypes = union(pathing$bucketCancerTypes, bucketInfo[!str_detect(Key, "Pre-Filtered Matrices")][, Key := str_replace(Key, "\\..+", "")]$Key)
+    totalSupportedCancerTypes = availableCancerTypes
     awsConnected = TRUE
   } else {
-    availableCancerTypes = pathing$serverCancerTypes
+    availableCancerTypes = pathing$allCancerTypes
+    totalSupportedCancerTypes = pathing$serverCancerTypes
     awsConnected = FALSE
   }
 }
@@ -158,10 +161,25 @@ server <- function(input, output, session) {
   
   if ((awsConnected == FALSE) & (onLocalMachine == FALSE)) {
     print(awsConnected)
-    showNotification("Connection to AWS not found. Using limited datasets. Please contact developers to notify them of issue.")
+    showNotification("Connection to AWS not found. Most custom P-values unavailable. Please contact developers to notify them of issue.")
   }
   
   if (onLocalMachine) { disable("useExampleData") }
+  
+  observeEvent(input$cancerType, {
+    if (!(input$cancerType %in% totalSupportedCancerTypes)) {
+      reset("useCustomP")
+      runjs("Shiny.setInputValue('useCustomP', false, {priority: 'event'});")
+      disable("useCustomP")
+    } else {
+      enable("useCustomP")
+    }
+  })
+  
+  observeEvent(input$useCustomP, {
+    toggle("pValPreGen", condition = !input$useCustomP)
+    toggle("pValCustom", condition = input$useCustomP)
+  })
   
   observe({
     
@@ -205,10 +223,6 @@ server <- function(input, output, session) {
     toggleState("cancerTypeCol", condition = (input$hasCCol & rv$exampleDataLoaded == FALSE))
   })
   
-  observeEvent(input$useCustomP, {
-    toggle("pValPreGen", condition = !input$useCustomP)
-    toggle("pValCustom", condition = input$useCustomP)
-  })
   
   observeEvent(input$useExampleData, {
     rv$exampleDataLoaded = TRUE
@@ -282,7 +296,11 @@ server <- function(input, output, session) {
   
   nestByProtein <- reactive({
     if (input$useCustomP & !(input$pValCustom %in% pathing$pValues)) {
-      matrices = nestByProteinCustom()
+      if (!(input$cancerType %in% totalSupportedCancerTypes)) {
+        matrices = NULL
+      } else {
+        matrices = nestByProteinCustom()
+      }
     } else {
       matrices = nestByProteinPreGen()
     }
@@ -295,7 +313,7 @@ server <- function(input, output, session) {
     matrices = list()
     
     disable("downloadSamplesList")
-    withProgress(message = 'Downloading weight data', value = 0, {
+    withProgress(message = 'Acquiring weight data', value = 0, {
       n = length(names(pathing$paths))
       
       for (weightSource in names(pathing$paths)) {
@@ -323,6 +341,9 @@ server <- function(input, output, session) {
   })
   
   nestByProteinCustom <- reactive({
+    disable("useCustomP")
+    disable("pValCustom")
+    disable("includedWeights")
     matrices = nestByProteinRead()
     cancer = input$cancerType
     pValue = input$pValCustom
@@ -365,23 +386,16 @@ server <- function(input, output, session) {
     
     disable("downloadSamplesList")
     
-    withProgress(message = 'Downloading weight matrices', value = 0, {
+    withProgress(message = 'Acquiring weight matrices', value = 0, {
       n = length(names(pathing$paths))
       for (weightSource in names(pathing$paths)) {
         if (pValue == input$pValPreGen) {
-          if (cancer %in% localCancerTypes) {
-            fileName = str_c(pathing$weightsPath, pathing$pPath, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
-            fileName = str_replace(fileName, ".txt", ".tsv")
-            incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
-            proteins = fread(file = fileName)
-            incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
-          } else {
-            fileName = str_c(pathing$pPath, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
-            fileName = str_replace(fileName, ".txt", ".tsv")
-            proteins = get_object(fileName, awsInfo$bucketName, as = "text", key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)
-            incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
-            proteins = fread(text = proteins)
-          }
+          fileName = str_c(pathing$weightsPath, pathing$pPath, "DT.", cancer, ".", pValue, pathing$paths[[weightSource]])
+          fileName = str_replace(fileName, ".txt", ".tsv")
+          incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
+          proteins = fread(file = fileName)
+          incProgress(1/(n*2), detail = str_c(cancer, " ", weightSource, " - ", pValue))
+          
           print(str_c("nestByProtein: ", cancer, ", ", pValue, ", ", weightSource))
           proteins = as.matrix(proteins, rownames = 1)
           
@@ -521,6 +535,11 @@ server <- function(input, output, session) {
     combined = list(d3Input, d3Input2)
     rm(d3Input)
     rm(d3Input2)
+    if (input$useCustomP == TRUE) {
+      enable("useCustomP")
+      enable("pValCustom")
+      enable("includedWeights")
+    }
     return(toJSON(combined))
   })
   
@@ -609,6 +628,7 @@ server <- function(input, output, session) {
   output$readme <- renderUI({
     includeMarkdown("README.md")
   })
+  
   
 }
 
