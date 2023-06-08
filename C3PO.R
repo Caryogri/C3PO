@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(stringr)
+library(markdown)
 library(yaml)
 library(data.table)
 library(Matrix)
