@@ -509,8 +509,7 @@ server <- function(input, output, session) {
       d3Input2 = d3Input2[, !c("Count")]
       d3Input2 = d3Input2[, size := 1]
       d3Input2 = d3Input2[, connections := 0]
-      d3Input2 = d3Input2[, order := .I]
-      d3Input2 = d3Input2[, !c("order")]
+      #d3Input2 = d3Input2[, order := .I]
       setnames(d3Input2, "Hallmark", "name")
       
       incProgress(0.2)

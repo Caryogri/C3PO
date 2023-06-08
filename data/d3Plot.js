@@ -66,7 +66,7 @@ const outerRadius = diameter / 2;
 const innerRadius = diameter / 3;
 const radiusDifference = outerRadius - innerRadius;
 
-const legendImageSize =  (diameter / hallmarkList.length) *.8;
+var legendImageSize;
 
 const numRanked = Object.keys(mainData[0]).length - 1;
 
@@ -78,24 +78,67 @@ var verticalTravel;
 
 if (height > width) {
   centerX = width / 2;
-  centerY = height - outerRadius;
+  centerY = outerRadius * 1.1;
   
-  legendHorizontalTravel = 0;
-  legendVerticalTravel = legendImageSize + 7;
-  legendHorizontalStart = centerX-100;
-  legendVerticalStart = 0;
+  legendImageSize = ((height - (centerY + outerRadius * 1.1)) / Math.ceil(hallmarkList.length / 2)) * .8;
+  
+  
+  legendHorizontalStart = centerX - outerRadius;
+  legendVerticalStart = centerY + outerRadius * 1.1;
+  
+  legendHorizontalTravel = (width - legendHorizontalStart * 2) / 2;
+  legendVerticalTravel = legendImageSize + 2;
+  
+  lImages = svg.selectAll("legendImages")
+    .data(hallmarkList)
+    .enter()
+    .append("g")
+    .html(function(d, i) {return hallmarkIcons[d.name];})
+    .attr("transform", function(d, i) {
+      var scaleX =  legendImageSize/ 100;
+      var scaleY =  legendImageSize / 100;
+    
+      var translateX;
+      
+      if ((i % 2) === 0) {
+        translateX = legendHorizontalStart;
+      }  else {
+        translateX = legendHorizontalStart + legendHorizontalTravel;
+      }
+      var translateY = legendVerticalStart + legendVerticalTravel * (Math.floor(i/2));
+      return "matrix(" + scaleX + ", 0, 0, " + scaleY + ", " + translateX + ", " + translateY + ")";
+    });
+
+  lText = svg.selectAll("legendText")
+    .data(hallmarkList)
+    .enter()
+    .append("text")
+      .text(function(d){return d.name;})
+      .attr("x", function(d, i) {
+        if ((i % 2) === 0) {
+          return legendHorizontalStart + legendImageSize + 5;
+        }  else {
+          return legendHorizontalStart + legendImageSize + 5 + legendHorizontalTravel;
+        }
+        
+      })
+      .attr("y", function(d, i) {return legendVerticalStart + legendImageSize * 1/2 + legendVerticalTravel * (Math.floor(i/2));})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle")
+      .style("font", legendImageSize * 1/2 + "px sans-serif");
 } else {
-  
+  legendImageSize = (diameter / hallmarkList.length) *.8;
   
   centerX = outerRadius;
   centerY = height / 2;
   
   legendHorizontalTravel = 0;
   legendVerticalTravel = legendImageSize + 7;
-  legendHorizontalStart = (centerX + outerRadius + legendImageSize);
-  legendVerticalStart = (height - hallmarkList.length * (legendImageSize + 7)) / 2;
   
-lImages = svg.selectAll("legendImages")
+  legendHorizontalStart = (centerX + outerRadius + legendImageSize);
+  legendVerticalStart = (height - hallmarkList.length * (legendVerticalTravel)) / 2;
+  
+  lImages = svg.selectAll("legendImages")
     .data(hallmarkList)
     .enter()
     .append("g")
@@ -109,9 +152,8 @@ lImages = svg.selectAll("legendImages")
       return "matrix(" + scaleX + ", 0, 0, " + scaleY + ", " + translateX + ", " + translateY + ")";
     });
 
-Math.max(...(hallmarkList.map(el => el.length)));
 
-lText = svg.selectAll("legendText")
+  lText = svg.selectAll("legendText")
     .data(hallmarkList)
     .enter()
     .append("text")
@@ -122,7 +164,6 @@ lText = svg.selectAll("legendText")
       .style("alignment-baseline", "middle")
       .style("font", legendImageSize * 1/2 + "px sans-serif");
       
-      //console.log(lText.node().getComputedTextLength());
 }
 
 var g = svg.append("g").attr("transform", "translate(" + centerX + "," + centerY + ")");
