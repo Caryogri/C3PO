@@ -131,4 +131,4 @@ Packages required by C3PO can be installed manually from CRAN and GitHub or thro
 
 ### Running the app
 
-Once you have acquired all supporting files and package dependencies, open your clone of the C3PO repository in R Studio. C3PO now be run by opening the "C3PO.R" script and clicking the "Run App"button in the upper right-hand corner of the code window.
+Once you have acquired all supporting files and package dependencies, open your clone of the C3PO repository in R Studio. C3PO now be run by opening the "app.R" script and clicking the "Run App"button in the upper right-hand corner of the code window.
