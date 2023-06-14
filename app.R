@@ -19,9 +19,9 @@ onLocalMachine = !file.exists("data/awsInfo.yaml")
 if (onLocalMachine) {
   availableCancerTypes = pathing$allCancerTypes
   localCancerTypes = availableCancerTypes
+  awsConnected = FALSE
 } else {
   awsInfo = yaml.load_file("data/awsInfo.yaml")
-  
   localCancerTypes = pathing$serverCancerTypes
   
   if (bucket_exists(awsInfo$bucketName, key = awsInfo$awsAccessKey, secret = awsInfo$awsSecretAccessKey)) {
