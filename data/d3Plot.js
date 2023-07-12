@@ -189,10 +189,12 @@ hallmarkSlices.append("path")
   .on("mouseover", function(d) {
     
     tooltip.style("opacity", 1)
-      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');;	
+      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');	
     })
   .on("mouseleave", function(d) {
-            tooltip.style("opacity", 0);	
+            tooltip.style("opacity", 0)
+              .style("left", "0px")
+              .style("top", "0px");
   })
   .on("mousemove", function(d) {
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
@@ -207,12 +209,12 @@ hallmarkSlices.append("path")
   //.attr("id", function(d, i) {return "BOLD1" + hallmarkList[i].name + "BOLD2:Present_in_" + (hallmarkList[i].proportion * 100).toFixed(2) + "percent_of_samples."}) Here lies my janky solution, which has been made obsolete by rolling back to d3v4. Never forget.
   .on("mouseover", function(d) {		
     tooltip.style("opacity", 1)
-      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');;	
+      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');	
     })
   .on("mouseleave", function(d) {
             tooltip.style("opacity", 0)
-              .style("left, 0px")
-              .style("top, 0px");	
+              .style("left", "0px")
+              .style("top", "0px");	
   })
   .on("mousemove", function(d) {
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
@@ -232,10 +234,12 @@ hallmarkSlices.append("g")
     })
   .on("mouseover", function(d) {		
     tooltip.style("opacity", 1)
-      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');;	
+      .style('box-shadow', '5px 5px 5px rgba(0,0,0,0.2)');	
     })
   .on("mouseleave", function(d) {
-            tooltip.style("opacity", 0);	
+            tooltip.style("opacity", 0)
+              .style("left", "0px")
+              .style("top", "0px");	
   })
   .on("mousemove", function(d) {
     tooltip.html("<b>" + d.data.name + "</b><br>Present in " + (d.data.proportion * 100).toFixed(2) + "% of samples.")
